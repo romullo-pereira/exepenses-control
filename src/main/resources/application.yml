@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: expensense-control
+  data:
+    mongodb:
+#      uri: ${MONGO_URI}
+      uri: mongodb://localhost:27017/expenses-control
+
+logging:
+  level:
+#    root: ${LOG_LEVEL}
+    root: INFO
+
+environment:
+  config:
+    token-expiration: 36000
+
+server:
+  port: 7000
