@@ -7,14 +7,14 @@ import org.junit.jupiter.api.Test
 class UtilsTest {
 
     @Test
-    fun `isValidEmail deve retornar true para emails validos`() {
+    fun `isValidEmail should return true to valid emails`() {
         assertTrue("teste@example.com".isValidEmail())
         assertTrue("user.name+tag+sorting@example.com".isValidEmail())
         assertTrue("user_name@example.co.uk".isValidEmail())
     }
 
     @Test
-    fun `isValidEmail deve retornar false para emails invalidos`() {
+    fun `isValidEmail should return false to invalid emails`() {
         assertFalse("plainaddress".isValidEmail())
         assertFalse("@missingusername.com".isValidEmail())
         assertFalse("username@.com".isValidEmail())
@@ -22,14 +22,14 @@ class UtilsTest {
     }
 
     @Test
-    fun `isValidPassword deve retornar true para senhas validas`() {
+    fun `isValidPassword should return true to valid passwords`() {
         assertTrue("Password1.".isValidPassword())
         assertTrue("Valid123.".isValidPassword())
         assertTrue("Another1.".isValidPassword())
     }
 
     @Test
-    fun `isValidPassword deve retornar false para senhas invalidas`() {
+    fun `isValidPassword should return false to invalid passwords`() {
         assertFalse("short".isValidPassword())
         assertFalse("nouppercase1".isValidPassword())
         assertFalse("NoNumber".isValidPassword())
