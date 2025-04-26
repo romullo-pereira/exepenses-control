@@ -9,36 +9,38 @@ import java.util.Date
 
 @Component
 class JwtUtil(
-        @Value("\${environment.config.token-expiration}")
-        private val expirationTime: Long
+    @Value("\${environment.config.token-expiration}")
+    private val expirationTime: Long,
 ) {
     companion object {
         private val secretKey = Keys.secretKeyFor(SignatureAlgorithm.HS256)
     }
 
-    fun generateToken(email: String): String {
-        return Jwts.builder()
-                .setSubject(email)
-                .setIssuedAt(Date())
-                .setExpiration(Date(System.currentTimeMillis() + expirationTime))
-                .signWith(secretKey)
-                .compact()
-    }
+    fun generateToken(email: String): String =
+        Jwts
+            .builder()
+            .setSubject(email)
+            .setIssuedAt(Date())
+            .setExpiration(Date(System.currentTimeMillis() + expirationTime))
+            .signWith(secretKey)
+            .compact()
 
-    fun validateToken(token: String): Boolean {
-        return try {
-            Jwts.parserBuilder()
-                    .setSigningKey(secretKey)
-                    .build()
-                    .parseClaimsJws(token)
+    fun validateToken(token: String): Boolean =
+        try {
+            Jwts
+                .parserBuilder()
+                .setSigningKey(secretKey)
+                .build()
+                .parseClaimsJws(token)
             true
         } catch (e: Exception) {
             false
         }
-    }
 
     fun getEmailFromToken(token: String): String {
-        val claims = Jwts.parserBuilder()
+        val claims =
+            Jwts
+                .parserBuilder()
                 .setSigningKey(secretKey)
                 .build()
                 .parseClaimsJws(token)

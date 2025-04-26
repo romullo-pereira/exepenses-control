@@ -9,5 +9,5 @@ import org.springframework.context.annotation.ComponentScan
 class ExpensenseControlApplication
 
 fun main(args: Array<String>) {
-	runApplication<ExpensenseControlApplication>(*args)
+    runApplication<ExpensenseControlApplication>(*args)
 }

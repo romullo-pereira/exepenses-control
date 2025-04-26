@@ -9,9 +9,21 @@ import org.springframework.web.bind.annotation.ExceptionHandler
 
 @ControllerAdvice
 class ExceptionHandler {
-
     @ExceptionHandler(DuplicatedEmailException::class)
-    fun handleDuplicatedEmail(e: DuplicatedEmailException): ResponseEntity<BusinessError> {
-        return ResponseEntity.badRequest().body(BusinessError(HttpStatus.BAD_REQUEST.value(), e.message!!))
-    }
+    fun handleDuplicatedEmail(e: DuplicatedEmailException): ResponseEntity<BusinessError> =
+        ResponseEntity.badRequest().body(
+            BusinessError(
+                HttpStatus.BAD_REQUEST.value(),
+                e.message!!,
+            ),
+        )
+
+    @ExceptionHandler(IllegalArgumentException::class)
+    fun handleIllegalArgumentException(e: IllegalArgumentException): ResponseEntity<BusinessError> =
+        ResponseEntity.badRequest().body(
+            BusinessError(
+                HttpStatus.BAD_REQUEST.value(),
+                e.message!!,
+            ),
+        )
 }
