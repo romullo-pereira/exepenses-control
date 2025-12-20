@@ -50,7 +50,7 @@ class AuthService(
 
     private fun buildLoginResponse(user: User) =
         LoginResponse(
-            token = jwtUtil.generateToken(user.email),
+            token = jwtUtil.generateToken(user.email, user.id),
             expirationTime = expirationTime,
             email = user.email,
         )

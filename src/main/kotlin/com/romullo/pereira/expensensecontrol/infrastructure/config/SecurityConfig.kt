@@ -21,6 +21,7 @@ class SecurityConfig {
     ): SecurityFilterChain {
         http
             .csrf { it.disable() }
+            .cors { it.disable() }
             .authorizeHttpRequests {
                 it
                     .requestMatchers(
