@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "name": "Commit on Task Completion",
+  "description": "After each spec task is marked as completed, stage all changes and create a git commit with a descriptive message based on the task that was just finished. Also remind to keep documentation updated.",
+  "version": "1",
+  "when": {
+    "type": "postTaskExecution"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A spec task was just completed. Please do the following:\n1. Run `git add -A` to stage all changes\n2. Run `git commit -m \"feat: <short description of what was implemented in this task>\"` — use the task title to craft the commit message, following conventional commits format (feat, fix, refactor, test, chore as appropriate)\n3. If the task added new endpoints, models, or significant behavior, update the README.md to reflect the current state of the project (what's implemented, how to run, etc.)\nDo this now without asking for confirmation."
+  }
+}

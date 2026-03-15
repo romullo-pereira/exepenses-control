@@ -50,6 +50,10 @@ dependencies {
 	testImplementation("org.testcontainers:junit-jupiter")
 	testImplementation("org.testcontainers:kafka")
 	testImplementation("org.testcontainers:mongodb")
+	testImplementation("io.kotest:kotest-runner-junit5:5.9.1")
+	testImplementation("io.kotest:kotest-property:5.9.1")
+	testImplementation("io.mockk:mockk:1.13.10")
+	testImplementation("de.flapdoodle.embed:de.flapdoodle.embed.mongo.spring30x:4.12.0")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
 }

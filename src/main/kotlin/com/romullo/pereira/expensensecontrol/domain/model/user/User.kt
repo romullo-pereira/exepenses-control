@@ -8,8 +8,10 @@ import org.springframework.data.mongodb.core.mapping.Document
 @Document(collection = "users")
 data class User(
     @Id
-    val id: ObjectId = ObjectId.get(),
+    val id: String = ObjectId.get().toString(),
     @Indexed(unique = true)
     val email: String,
-    val password: String,
+    val passwordHash: String,
+    val categories: MutableList<String> = mutableListOf(),
+    val expenseLimit: Double? = null,
 )

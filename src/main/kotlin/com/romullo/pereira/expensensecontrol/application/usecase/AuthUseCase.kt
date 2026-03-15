@@ -1,0 +1,52 @@
+package com.romullo.pereira.expensensecontrol.application.usecase
+
+import com.romullo.pereira.expensensecontrol.domain.exception.DuplicatedEmailException
+import com.romullo.pereira.expensensecontrol.domain.exception.InvalidUserException
+import com.romullo.pereira.expensensecontrol.domain.model.login.LoginRequest
+import com.romullo.pereira.expensensecontrol.domain.model.login.TokenResponse
+import com.romullo.pereira.expensensecontrol.domain.model.user.RegisterRequest
+import com.romullo.pereira.expensensecontrol.domain.model.user.User
+import com.romullo.pereira.expensensecontrol.domain.port.inbound.AuthenticateUserUseCase
+import com.romullo.pereira.expensensecontrol.domain.port.inbound.RegisterUserUseCase
+import com.romullo.pereira.expensensecontrol.domain.port.outbound.UserRepositoryPort
+import com.romullo.pereira.expensensecontrol.adapters.inbound.rest.config.logger
+import com.romullo.pereira.expensensecontrol.adapters.inbound.rest.security.JwtUtil
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.security.crypto.password.PasswordEncoder
+import org.springframework.stereotype.Service
+
+@Service
+class AuthUseCase(
+    private val userRepository: UserRepositoryPort,
+    private val passwordEncoder: PasswordEncoder,
+    private val jwtUtil: JwtUtil,
+    @Value("\${environment.config.token-expiration}")
+    private val expirationTime: Long,
+) : RegisterUserUseCase, AuthenticateUserUseCase {
+
+    private val logger = logger()
+
+    override fun register(request: RegisterRequest): User {
+        if (userRepository.existsByEmail(request.email)) {
+            logger.debug("Email ja cadastrado ${request.email}")
+            throw DuplicatedEmailException()
+        }
+        return userRepository.save(
+            User(
+                email = request.email,
+                passwordHash = passwordEncoder.encode(request.password),
+            )
+        )
+    }
+
+    override fun authenticate(loginRequest: LoginRequest): TokenResponse {
+        val user = userRepository.findByEmail(loginRequest.email) ?: throw InvalidUserException()
+        if (!passwordEncoder.matches(loginRequest.password, user.passwordHash)) {
+            throw InvalidUserException()
+        }
+        return TokenResponse(
+            token = jwtUtil.generateToken(user.email, user.id),
+            expiresIn = expirationTime,
+        )
+    }
+}

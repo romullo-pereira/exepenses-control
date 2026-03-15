@@ -38,3 +38,6 @@ out/
 
 ### Kotlin ###
 .kotlin
+
+# Kiro - ignorar apenas configurações pessoais
+.kiro/settings/
