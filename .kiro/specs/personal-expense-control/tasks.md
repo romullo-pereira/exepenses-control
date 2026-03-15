@@ -25,7 +25,7 @@ Refatoração do projeto para arquitetura hexagonal (Ports & Adapters) com Kotli
     - _Requirements: 8.1, 8.2, 8.3_
   - [x] 2.4 Criar exceções de domínio: `DuplicateEmailException`, `InvalidInputException`, `InvalidCredentialsException`, `UnauthorizedException`, `ForbiddenException`, `NotFoundException`, `DuplicateCategoryException`, `BankApiException`, `DatabaseException`
     - _Requirements: 1.2, 1.3, 2.2, 5.2, 5.3, 6.2, 7.4, 10.4_
-  - [ ]* 2.5 Escrever testes de propriedade para os modelos de domínio
+  - [x] 2.5 Escrever testes de propriedade para os modelos de domínio
     - **Property 24: Campos obrigatórios presentes em toda Despesa persistida**
     - **Validates: Requirements 10.2**
 
