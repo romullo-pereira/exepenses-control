@@ -29,10 +29,10 @@ Refatoração do projeto para arquitetura hexagonal (Ports & Adapters) com Kotli
     - **Property 24: Campos obrigatórios presentes em toda Despesa persistida**
     - **Validates: Requirements 10.2**
 
-- [-] 3. Definir interfaces de portas (Ports)
+- [x] 3. Definir interfaces de portas (Ports)
   - [x] 3.1 Criar inbound ports (interfaces de casos de uso): `RegisterUserUseCase`, `AuthenticateUserUseCase`, `CreateExpenseUseCase`, `ListExpensesUseCase`, `GetExpenseByIdUseCase`, `CreateCategoryUseCase`, `ListCategoriesUseCase`, `ImportBankTransactionsUseCase`
     - _Requirements: 1.1, 2.1, 3.1, 4.1, 5.1, 6.1, 7.1_
-  - [-] 3.2 Criar outbound ports (interfaces de repositórios e serviços externos): `UserRepository`, `ExpenseRepository`, `CategoryRepository`, `EventPublisher`, `BankApiClient`
+  - [x] 3.2 Criar outbound ports (interfaces de repositórios e serviços externos): `UserRepository`, `ExpenseRepository`, `CategoryRepository`, `EventPublisher`, `BankApiClient`
     - _Requirements: 1.4, 3.2, 3.3, 7.1, 8.1, 8.2, 8.3_
 
 - [ ] 4. Implementar casos de uso de autenticação
