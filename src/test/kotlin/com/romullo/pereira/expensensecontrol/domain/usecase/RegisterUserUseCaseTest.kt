@@ -1,9 +1,11 @@
 package com.romullo.pereira.expensensecontrol.domain.usecase
 
 import com.romullo.pereira.expensensecontrol.application.usecase.RegisterUserUseCaseImpl
+import com.romullo.pereira.expensensecontrol.domain.exception.DuplicateEmailException
 import com.romullo.pereira.expensensecontrol.domain.model.user.RegisterRequest
 import com.romullo.pereira.expensensecontrol.domain.model.user.User
 import com.romullo.pereira.expensensecontrol.domain.port.outbound.UserRepositoryPort
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -16,6 +18,23 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
+
+// In-memory fake implementation of UserRepositoryPort for stateful property tests
+class InMemoryUserRepository : UserRepositoryPort {
+    private val users = mutableListOf<User>()
+
+    fun clear() = users.clear()
+    fun count() = users.size
+
+    override fun save(user: User): User {
+        users.add(user)
+        return user
+    }
+
+    override fun findByEmail(email: String): User? = users.find { it.email == email }
+
+    override fun existsByEmail(email: String): Boolean = users.any { it.email == email }
+}
 
 // Feature: personal-expense-control, Property 1: Registro armazena senha como hash bcrypt válido
 class RegisterUserUseCaseTest : StringSpec({
@@ -61,6 +80,33 @@ class RegisterUserUseCaseTest : StringSpec({
 
             // BCrypt hash must verify correctly against the original password
             passwordEncoder.matches(password, storedHash) shouldBe true
+        }
+    }
+
+    // Feature: personal-expense-control, Property 2: E-mail duplicado causa conflito
+    // Validates: Requirements 1.2, 10.3
+    "para qualquer email ja registrado, uma segunda tentativa de registro deve lancar DuplicateEmailException e nao aumentar o numero de usuarios" {
+        val inMemoryRepo = InMemoryUserRepository()
+        val useCaseWithRealRepo = RegisterUserUseCaseImpl(inMemoryRepo, passwordEncoder)
+
+        checkAll(100, arbEmail, arbPassword) { email, password ->
+            // Reset state for each iteration
+            inMemoryRepo.clear()
+
+            // First registration must succeed
+            val firstRequest = RegisterRequest(email = email, password = password)
+            useCaseWithRealRepo.register(firstRequest)
+            val countAfterFirst = inMemoryRepo.count()
+            countAfterFirst shouldBe 1
+
+            // Second registration with the same email must throw DuplicateEmailException
+            val secondRequest = RegisterRequest(email = email, password = password)
+            shouldThrow<DuplicateEmailException> {
+                useCaseWithRealRepo.register(secondRequest)
+            }
+
+            // Number of users must not increase after the duplicate attempt
+            inMemoryRepo.count() shouldBe countAfterFirst
         }
     }
 })

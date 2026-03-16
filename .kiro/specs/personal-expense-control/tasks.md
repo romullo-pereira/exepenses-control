@@ -44,7 +44,7 @@ Refatoração do projeto para arquitetura hexagonal (Ports & Adapters) com Kotli
   - [x] 4.2 Escrever testes de propriedade para `RegisterUserUseCase`
     - **Property 1: Registro armazena senha como hash bcrypt válido**
     - **Validates: Requirements 1.1, 1.4, 9.4**
-  - [ ]* 4.3 Escrever testes de propriedade para `RegisterUserUseCase`
+  - [x] 4.3 Escrever testes de propriedade para `RegisterUserUseCase`
     - **Property 2: E-mail duplicado causa conflito**
     - **Validates: Requirements 1.2, 10.3**
   - [ ]* 4.4 Escrever testes de propriedade para `RegisterUserUseCase`
