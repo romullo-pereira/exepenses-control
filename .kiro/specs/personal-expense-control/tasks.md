@@ -50,7 +50,7 @@ Refatoração do projeto para arquitetura hexagonal (Ports & Adapters) com Kotli
   - [ ]* 4.4 Escrever testes de propriedade para `RegisterUserUseCase`
     - **Property 3: Validação de entrada no registro**
     - **Validates: Requirements 1.3**
-  - [ ] 4.5 Implementar `AuthenticateUserUseCaseImpl`
+  - [x] 4.5 Implementar `AuthenticateUserUseCaseImpl`
     - Buscar usuário por e-mail; lançar `InvalidCredentialsException` se não encontrado ou senha incorreta
     - Gerar JWT HS256 com `userId` no payload e expiração de 24h
     - _Requirements: 2.1, 2.2, 2.3_
