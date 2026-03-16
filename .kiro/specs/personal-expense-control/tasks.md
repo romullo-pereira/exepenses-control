@@ -35,7 +35,7 @@ Refatoração do projeto para arquitetura hexagonal (Ports & Adapters) com Kotli
   - [x] 3.2 Criar outbound ports (interfaces de repositórios e serviços externos): `UserRepository`, `ExpenseRepository`, `CategoryRepository`, `EventPublisher`, `BankApiClient`
     - _Requirements: 1.4, 3.2, 3.3, 7.1, 8.1, 8.2, 8.3_
 
-- [-] 4. Implementar casos de uso de autenticação
+- [x] 4. Implementar casos de uso de autenticação
   - [x] 4.1 Implementar `RegisterUserUseCaseImpl`
     - Validar unicidade de e-mail via `UserRepository.existsByEmail`; lançar `DuplicateEmailException` se duplicado
     - Fazer hash da senha com BCrypt (fator de custo 10) antes de persistir
