@@ -2,6 +2,7 @@ package com.romullo.pereira.expensensecontrol.domain.usecase
 
 import com.romullo.pereira.expensensecontrol.application.usecase.RegisterUserUseCaseImpl
 import com.romullo.pereira.expensensecontrol.domain.exception.DuplicateEmailException
+import com.romullo.pereira.expensensecontrol.domain.exception.InvalidInputException
 import com.romullo.pereira.expensensecontrol.domain.model.user.RegisterRequest
 import com.romullo.pereira.expensensecontrol.domain.model.user.User
 import com.romullo.pereira.expensensecontrol.domain.port.outbound.UserRepositoryPort
@@ -12,6 +13,7 @@ import io.kotest.matchers.shouldNotBe
 import io.kotest.property.Arb
 import io.kotest.property.arbitrary.arbitrary
 import io.kotest.property.arbitrary.filter
+import io.kotest.property.arbitrary.int
 import io.kotest.property.arbitrary.string
 import io.kotest.property.checkAll
 import io.mockk.every
@@ -107,6 +109,45 @@ class RegisterUserUseCaseTest : StringSpec({
 
             // Number of users must not increase after the duplicate attempt
             inMemoryRepo.count() shouldBe countAfterFirst
+        }
+    }
+
+    // Feature: personal-expense-control, Property 3: Validação de entrada no registro
+    // Validates: Requirements 1.3
+    "para qualquer email invalido ou senha com menos de 8 caracteres, o registro deve ser rejeitado com InvalidInputException e nenhum usuario deve ser persistido" {
+        val inMemoryRepo = InMemoryUserRepository()
+        val useCaseWithRealRepo = RegisterUserUseCaseImpl(inMemoryRepo, passwordEncoder)
+
+        // Generator for invalid emails: strings without '@' or without domain after '@'
+        val arbInvalidEmail: Arb<String> = Arb.string(minSize = 1, maxSize = 30)
+            .filter { s ->
+                s.isNotBlank() && (
+                    !s.contains('@') ||                          // missing '@'
+                    s.endsWith('@') ||                           // no domain after '@'
+                    s.substringAfter('@').isBlank() ||           // empty domain
+                    !s.substringAfter('@').contains('.')         // no dot in domain
+                )
+            }
+
+        // Generator for short passwords (0 to 7 characters)
+        val arbShortPassword: Arb<String> = Arb.string(minSize = 0, maxSize = 7)
+
+        // Test invalid emails with valid passwords
+        checkAll(50, arbInvalidEmail, arbPassword) { invalidEmail, validPassword ->
+            inMemoryRepo.clear()
+            shouldThrow<InvalidInputException> {
+                useCaseWithRealRepo.register(RegisterRequest(email = invalidEmail, password = validPassword))
+            }
+            inMemoryRepo.count() shouldBe 0
+        }
+
+        // Test valid emails with short passwords
+        checkAll(50, arbEmail, arbShortPassword) { validEmail, shortPassword ->
+            inMemoryRepo.clear()
+            shouldThrow<InvalidInputException> {
+                useCaseWithRealRepo.register(RegisterRequest(email = validEmail, password = shortPassword))
+            }
+            inMemoryRepo.count() shouldBe 0
         }
     }
 })
