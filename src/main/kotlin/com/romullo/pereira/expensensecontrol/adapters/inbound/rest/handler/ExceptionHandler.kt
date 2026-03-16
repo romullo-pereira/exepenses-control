@@ -1,6 +1,8 @@
 package com.romullo.pereira.expensensecontrol.adapters.inbound.rest.handler
 
 import com.romullo.pereira.expensensecontrol.domain.exception.DuplicatedEmailException
+import com.romullo.pereira.expensensecontrol.domain.exception.DuplicateEmailException
+import com.romullo.pereira.expensensecontrol.domain.exception.InvalidCredentialsException
 import com.romullo.pereira.expensensecontrol.domain.exception.InvalidUserException
 import com.romullo.pereira.expensensecontrol.domain.model.error.BusinessError
 import org.springframework.http.HttpStatus
@@ -17,10 +19,22 @@ class ExceptionHandler {
             BusinessError(HttpStatus.CONFLICT.value(), e.message!!),
         )
 
+    @ExceptionHandler(DuplicateEmailException::class)
+    fun handleDuplicateEmail(e: DuplicateEmailException): ResponseEntity<BusinessError> =
+        ResponseEntity.status(HttpStatus.CONFLICT).body(
+            BusinessError(HttpStatus.CONFLICT.value(), e.message),
+        )
+
     @ExceptionHandler(InvalidUserException::class)
     fun handleInvalidUser(e: InvalidUserException): ResponseEntity<BusinessError> =
         ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
             BusinessError(HttpStatus.UNAUTHORIZED.value(), e.message!!),
+        )
+
+    @ExceptionHandler(InvalidCredentialsException::class)
+    fun handleInvalidCredentials(e: InvalidCredentialsException): ResponseEntity<BusinessError> =
+        ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+            BusinessError(HttpStatus.UNAUTHORIZED.value(), e.message),
         )
 
     @ExceptionHandler(IllegalArgumentException::class)
