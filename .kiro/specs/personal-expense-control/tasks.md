@@ -41,7 +41,7 @@ Refatoração do projeto para arquitetura hexagonal (Ports & Adapters) com Kotli
     - Fazer hash da senha com BCrypt (fator de custo 10) antes de persistir
     - Persistir via `UserRepository.save`
     - _Requirements: 1.1, 1.2, 1.4, 9.4_
-  - [ ]* 4.2 Escrever testes de propriedade para `RegisterUserUseCase`
+  - [x] 4.2 Escrever testes de propriedade para `RegisterUserUseCase`
     - **Property 1: Registro armazena senha como hash bcrypt válido**
     - **Validates: Requirements 1.1, 1.4, 9.4**
   - [ ]* 4.3 Escrever testes de propriedade para `RegisterUserUseCase`
