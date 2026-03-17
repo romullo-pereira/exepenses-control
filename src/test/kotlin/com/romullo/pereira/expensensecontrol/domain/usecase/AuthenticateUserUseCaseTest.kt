@@ -4,7 +4,9 @@ import com.romullo.pereira.expensensecontrol.adapters.inbound.rest.security.JwtU
 import com.romullo.pereira.expensensecontrol.application.usecase.AuthenticateUserUseCaseImpl
 import com.romullo.pereira.expensensecontrol.domain.model.login.LoginRequest
 import com.romullo.pereira.expensensecontrol.domain.model.user.User
+import com.romullo.pereira.expensensecontrol.domain.exception.InvalidCredentialsException
 import com.romullo.pereira.expensensecontrol.domain.port.outbound.UserRepositoryPort
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.longs.shouldBeBetween
 import io.kotest.matchers.shouldBe
@@ -101,6 +103,31 @@ class AuthenticateUserUseCaseTest : StringSpec({
             val maxExpiration = afterCall  + (24L * 60L +  5L) * 60L * 1000L  // 24h05min
 
             expirationMs.shouldBeBetween(minExpiration, maxExpiration)
+        }
+    }
+
+    // Feature: personal-expense-control, Property 5: Login com credenciais inválidas é rejeitado
+    // Validates: Requirements 2.2
+    "para qualquer combinacao de email e senha que nao corresponda a um usuario registrado, deve lancar InvalidCredentialsException" {
+        checkAll(100, arbEmail, arbPassword, arbPassword) { email, registeredPassword, attemptedPassword ->
+            // Case 1: non-existent email — repository returns null
+            every { userRepository.findByEmail(email) } returns null
+
+            shouldThrow<InvalidCredentialsException> {
+                useCase.authenticate(LoginRequest(email = email, password = attemptedPassword))
+            }
+
+            // Case 2: existing user but wrong password (ensure passwords differ)
+            val differentPassword = if (registeredPassword == attemptedPassword) attemptedPassword + "X" else attemptedPassword
+            val hashedPassword = passwordEncoder.encode(registeredPassword)
+            val userId = "user-${email.hashCode()}"
+            val user = User(id = userId, email = email, passwordHash = hashedPassword)
+
+            every { userRepository.findByEmail(email) } returns user
+
+            shouldThrow<InvalidCredentialsException> {
+                useCase.authenticate(LoginRequest(email = email, password = differentPassword))
+            }
         }
     }
 })

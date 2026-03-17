@@ -57,7 +57,7 @@ Refatoração do projeto para arquitetura hexagonal (Ports & Adapters) com Kotli
   - [x] 4.6 Escrever testes de propriedade para `AuthenticateUserUseCase`
     - **Property 4: Login retorna JWT com userId e expiração correta**
     - **Validates: Requirements 2.1, 2.3**
-  - [ ]* 4.7 Escrever testes de propriedade para `AuthenticateUserUseCase`
+  - [x] 4.7 Escrever testes de propriedade para `AuthenticateUserUseCase`
     - **Property 5: Login com credenciais inválidas é rejeitado**
     - **Validates: Requirements 2.2**
 
