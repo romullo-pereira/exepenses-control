@@ -54,7 +54,7 @@ Refatoração do projeto para arquitetura hexagonal (Ports & Adapters) com Kotli
     - Buscar usuário por e-mail; lançar `InvalidCredentialsException` se não encontrado ou senha incorreta
     - Gerar JWT HS256 com `userId` no payload e expiração de 24h
     - _Requirements: 2.1, 2.2, 2.3_
-  - [ ]* 4.6 Escrever testes de propriedade para `AuthenticateUserUseCase`
+  - [x] 4.6 Escrever testes de propriedade para `AuthenticateUserUseCase`
     - **Property 4: Login retorna JWT com userId e expiração correta**
     - **Validates: Requirements 2.1, 2.3**
   - [ ]* 4.7 Escrever testes de propriedade para `AuthenticateUserUseCase`
