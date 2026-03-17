@@ -61,10 +61,10 @@ Refatoração do projeto para arquitetura hexagonal (Ports & Adapters) com Kotli
     - **Property 5: Login com credenciais inválidas é rejeitado**
     - **Validates: Requirements 2.2**
 
-- [ ] 5. Implementar infraestrutura de segurança JWT
-  - [ ] 5.1 Implementar `JwtUtil` para geração e validação de tokens JWT HS256 com expiração de 24h
+- [-] 5. Implementar infraestrutura de segurança JWT
+  - [x] 5.1 Implementar `JwtUtil` para geração e validação de tokens JWT HS256 com expiração de 24h
     - _Requirements: 2.3, 2.4, 2.5, 9.5_
-  - [ ] 5.2 Implementar `JwtAuthenticationFilter` para interceptar requisições, extrair e validar o token do header `Authorization: Bearer`, e injetar `userId` no `SecurityContext`
+  - [x] 5.2 Implementar `JwtAuthenticationFilter` para interceptar requisições, extrair e validar o token do header `Authorization: Bearer`, e injetar `userId` no `SecurityContext`
     - Lançar `UnauthorizedException` para token ausente, inválido ou expirado
     - _Requirements: 2.4, 2.5, 9.1_
   - [ ] 5.3 Configurar `SecurityConfig` para liberar `/auth/register` e `/auth/login` e proteger todos os demais endpoints

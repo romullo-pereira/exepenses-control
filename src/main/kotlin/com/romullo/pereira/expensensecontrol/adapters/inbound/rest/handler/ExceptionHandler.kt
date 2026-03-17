@@ -4,6 +4,7 @@ import com.romullo.pereira.expensensecontrol.domain.exception.DuplicatedEmailExc
 import com.romullo.pereira.expensensecontrol.domain.exception.DuplicateEmailException
 import com.romullo.pereira.expensensecontrol.domain.exception.InvalidCredentialsException
 import com.romullo.pereira.expensensecontrol.domain.exception.InvalidUserException
+import com.romullo.pereira.expensensecontrol.domain.exception.UnauthorizedException
 import com.romullo.pereira.expensensecontrol.domain.model.error.BusinessError
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -33,6 +34,12 @@ class ExceptionHandler {
 
     @ExceptionHandler(InvalidCredentialsException::class)
     fun handleInvalidCredentials(e: InvalidCredentialsException): ResponseEntity<BusinessError> =
+        ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+            BusinessError(HttpStatus.UNAUTHORIZED.value(), e.message),
+        )
+
+    @ExceptionHandler(UnauthorizedException::class)
+    fun handleUnauthorized(e: UnauthorizedException): ResponseEntity<BusinessError> =
         ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
             BusinessError(HttpStatus.UNAUTHORIZED.value(), e.message),
         )
