@@ -69,7 +69,7 @@ Refatoração do projeto para arquitetura hexagonal (Ports & Adapters) com Kotli
     - _Requirements: 2.4, 2.5, 9.1_
   - [x] 5.3 Configurar `SecurityConfig` para liberar `/auth/register` e `/auth/login` e proteger todos os demais endpoints
     - _Requirements: 2.4, 9.1_
-  - [ ]* 5.4 Escrever testes de propriedade para o filtro JWT
+  - [x] 5.4 Escrever testes de propriedade para o filtro JWT
     - **Property 6: Apenas JWT válido concede acesso a endpoints protegidos**
     - **Validates: Requirements 2.4, 2.5, 9.1**
 
