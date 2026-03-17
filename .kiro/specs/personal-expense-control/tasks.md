@@ -67,7 +67,7 @@ Refatoração do projeto para arquitetura hexagonal (Ports & Adapters) com Kotli
   - [x] 5.2 Implementar `JwtAuthenticationFilter` para interceptar requisições, extrair e validar o token do header `Authorization: Bearer`, e injetar `userId` no `SecurityContext`
     - Lançar `UnauthorizedException` para token ausente, inválido ou expirado
     - _Requirements: 2.4, 2.5, 9.1_
-  - [ ] 5.3 Configurar `SecurityConfig` para liberar `/auth/register` e `/auth/login` e proteger todos os demais endpoints
+  - [x] 5.3 Configurar `SecurityConfig` para liberar `/auth/register` e `/auth/login` e proteger todos os demais endpoints
     - _Requirements: 2.4, 9.1_
   - [ ]* 5.4 Escrever testes de propriedade para o filtro JWT
     - **Property 6: Apenas JWT válido concede acesso a endpoints protegidos**
