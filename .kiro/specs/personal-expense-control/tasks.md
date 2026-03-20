@@ -73,7 +73,7 @@ Refatoração do projeto para arquitetura hexagonal (Ports & Adapters) com Kotli
     - **Property 6: Apenas JWT válido concede acesso a endpoints protegidos**
     - **Validates: Requirements 2.4, 2.5, 9.1**
 
-- [ ] 6. Checkpoint — Garantir que todos os testes passem
+- [x] 6. Checkpoint — Garantir que todos os testes passem
   - Garantir que todos os testes passem; perguntar ao usuário se houver dúvidas.
 
 - [ ] 7. Implementar casos de uso de despesas

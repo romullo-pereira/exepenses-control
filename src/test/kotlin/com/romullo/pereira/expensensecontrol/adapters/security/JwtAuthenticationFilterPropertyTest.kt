@@ -38,7 +38,7 @@ class JwtAuthenticationFilterPropertyTest : StringSpec({
         expirationTime = expirationTimeMs,
         secretKeyString = testSecretKey,
     )
-    val objectMapper = ObjectMapper()
+    val objectMapper = ObjectMapper().findAndRegisterModules()
     val filter = JwtAuthenticationFilter(jwtUtil, objectMapper)
 
     // Generates valid user IDs (alphanumeric, non-blank)
