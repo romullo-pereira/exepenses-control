@@ -17,9 +17,11 @@ import io.kotest.property.arbitrary.filter
 import io.kotest.property.arbitrary.long
 import io.kotest.property.arbitrary.string
 import io.kotest.property.checkAll
+import com.romullo.pereira.expensensecontrol.domain.model.event.ExpenseCreatedEvent
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
+import io.mockk.verify
 import java.time.Instant
 
 // Feature: personal-expense-control, Property 7: Criação de despesa persiste com source=MANUAL
@@ -96,6 +98,54 @@ class CreateExpenseUseCaseTest : StringSpec({
             response.date shouldBe date
             response.description shouldBe description
             response.userId shouldBe userId
+        }
+    }
+
+    // Feature: personal-expense-control, Property 8: Evento expense.created publicado com dados corretos
+    // Validates: Requirements 3.2, 8.1
+    "para qualquer despesa criada com sucesso, o evento expense.created publicado deve conter expenseId, userId, amount e category iguais aos da despesa persistida" {
+        checkAll(100, arbAmount, arbNonBlankString, arbInstant, arbNonBlankString, arbUserId) {
+            amount, category, date, description, userId ->
+
+            val savedExpenseSlot = slot<Expense>()
+            val eventSlot = slot<ExpenseCreatedEvent>()
+
+            every { expenseRepository.save(capture(savedExpenseSlot)) } answers {
+                savedExpenseSlot.captured
+            }
+
+            every { userRepository.findById(userId) } returns User(
+                id = userId,
+                email = "$userId@test.com",
+                passwordHash = "hash",
+                expenseLimit = null,
+            )
+
+            every { eventPublisher.publishExpenseCreated(capture(eventSlot)) } returns Unit
+
+            val request = CreateExpenseRequest(
+                amount = amount,
+                category = category,
+                date = date,
+                description = description,
+            )
+
+            useCase.create(request, userId)
+
+            val persistedExpense = savedExpenseSlot.captured
+            val publishedEvent = eventSlot.captured
+
+            // event expenseId must match the persisted expense id
+            publishedEvent.expenseId shouldBe persistedExpense.id
+
+            // event userId must match the persisted expense userId
+            publishedEvent.userId shouldBe persistedExpense.userId
+
+            // event amount must match the persisted expense amount
+            publishedEvent.amount shouldBe persistedExpense.amount
+
+            // event category must match the persisted expense category
+            publishedEvent.category shouldBe persistedExpense.category
         }
     }
 })
