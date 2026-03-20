@@ -89,7 +89,7 @@ Refatoração do projeto para arquitetura hexagonal (Ports & Adapters) com Kotli
   - [x] 7.3 Escrever testes de propriedade para `CreateExpenseUseCase`
     - **Property 8: Evento expense.created publicado com dados corretos**
     - **Validates: Requirements 3.2, 8.1**
-  - [ ]* 7.4 Escrever testes de propriedade para `CreateExpenseUseCase`
+  - [x] 7.4 Escrever testes de propriedade para `CreateExpenseUseCase`
     - **Property 9: Alerta de gasto alto publicado somente quando valor supera limite**
     - **Validates: Requirements 3.3, 8.2**
   - [ ]* 7.5 Escrever testes de propriedade para `CreateExpenseUseCase`

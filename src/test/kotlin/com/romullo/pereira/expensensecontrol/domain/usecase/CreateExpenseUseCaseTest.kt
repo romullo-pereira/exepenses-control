@@ -18,6 +18,8 @@ import io.kotest.property.arbitrary.long
 import io.kotest.property.arbitrary.string
 import io.kotest.property.checkAll
 import com.romullo.pereira.expensensecontrol.domain.model.event.ExpenseCreatedEvent
+import com.romullo.pereira.expensensecontrol.domain.model.event.ExpenseHighAlertEvent
+import io.mockk.clearMocks
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
@@ -146,6 +148,83 @@ class CreateExpenseUseCaseTest : StringSpec({
 
             // event category must match the persisted expense category
             publishedEvent.category shouldBe persistedExpense.category
+        }
+    }
+
+    // Feature: personal-expense-control, Property 9: Alerta de gasto alto publicado somente quando valor supera limite
+    // Validates: Requirements 3.3, 8.2
+    "alerta alert.expense.high deve ser publicado se e somente se amount supera expenseLimit" {
+        val arbPositiveDouble = Arb.double(0.01, 10_000.0).filter { it > 0.0 && it.isFinite() }
+
+        // Branch 1: amount > expenseLimit → alert must be published exactly once
+        checkAll(100, arbPositiveDouble, arbPositiveDouble, arbNonBlankString, arbInstant, arbNonBlankString, arbUserId) {
+            limit, extraAmount, category, date, description, userId ->
+
+            clearMocks(expenseRepository, userRepository, eventPublisher)
+
+            val amount = limit + extraAmount  // guarantees amount > limit
+
+            val savedExpenseSlot = slot<Expense>()
+
+            every { expenseRepository.save(capture(savedExpenseSlot)) } answers {
+                savedExpenseSlot.captured
+            }
+
+            every { userRepository.findById(userId) } returns User(
+                id = userId,
+                email = "$userId@test.com",
+                passwordHash = "hash",
+                expenseLimit = limit,
+            )
+
+            every { eventPublisher.publishExpenseCreated(any()) } returns Unit
+            every { eventPublisher.publishExpenseHighAlert(any()) } returns Unit
+
+            val request = CreateExpenseRequest(
+                amount = amount,
+                category = category,
+                date = date,
+                description = description,
+            )
+
+            useCase.create(request, userId)
+
+            verify(exactly = 1) { eventPublisher.publishExpenseHighAlert(any()) }
+        }
+
+        // Branch 2: amount <= expenseLimit → alert must NOT be published
+        checkAll(100, arbPositiveDouble, arbPositiveDouble, arbNonBlankString, arbInstant, arbNonBlankString, arbUserId) {
+            amount, extraLimit, category, date, description, userId ->
+
+            clearMocks(expenseRepository, userRepository, eventPublisher)
+
+            val limit = amount + extraLimit  // guarantees limit >= amount (amount <= limit)
+
+            val savedExpenseSlot = slot<Expense>()
+
+            every { expenseRepository.save(capture(savedExpenseSlot)) } answers {
+                savedExpenseSlot.captured
+            }
+
+            every { userRepository.findById(userId) } returns User(
+                id = userId,
+                email = "$userId@test.com",
+                passwordHash = "hash",
+                expenseLimit = limit,
+            )
+
+            every { eventPublisher.publishExpenseCreated(any()) } returns Unit
+
+            val request = CreateExpenseRequest(
+                amount = amount,
+                category = category,
+                date = date,
+                description = description,
+            )
+
+            useCase.create(request, userId)
+
+            verify(exactly = 0) { eventPublisher.publishExpenseHighAlert(any()) }
         }
     }
 })
