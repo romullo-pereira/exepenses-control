@@ -76,8 +76,8 @@ Refatoração do projeto para arquitetura hexagonal (Ports & Adapters) com Kotli
 - [x] 6. Checkpoint — Garantir que todos os testes passem
   - Garantir que todos os testes passem; perguntar ao usuário se houver dúvidas.
 
-- [ ] 7. Implementar casos de uso de despesas
-  - [ ] 7.1 Implementar `CreateExpenseUseCaseImpl`
+- [-] 7. Implementar casos de uso de despesas
+  - [x] 7.1 Implementar `CreateExpenseUseCaseImpl`
     - Validar `amount > 0` e campos obrigatórios; lançar `InvalidInputException` se inválido
     - Persistir despesa com `source = MANUAL` via `ExpenseRepository.save`
     - Publicar `ExpenseCreatedEvent` via `EventPublisher.publishExpenseCreated` (capturar exceção Kafka com try/catch e logar com ERROR)

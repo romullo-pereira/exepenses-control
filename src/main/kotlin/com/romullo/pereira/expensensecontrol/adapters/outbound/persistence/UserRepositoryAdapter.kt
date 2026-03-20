@@ -14,6 +14,9 @@ class UserRepositoryAdapter(
     override fun findByEmail(email: String): User? =
         userMongoRepository.findByEmail(email).firstOrNull()
 
+    override fun findById(id: String): User? =
+        userMongoRepository.findById(id).orElse(null)
+
     override fun existsByEmail(email: String): Boolean =
         userMongoRepository.findByEmail(email).isNotEmpty()
 }

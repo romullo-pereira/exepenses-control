@@ -18,5 +18,8 @@ class ExpenseRepositoryAdapter(
         expenseMongoRepository.findById(id).orElse(null)
             ?.takeIf { it.userId == userId }
 
+    override fun findById(id: String): Expense? =
+        expenseMongoRepository.findById(id).orElse(null)
+
     override fun existsByExternalIdAndUserId(externalId: String, userId: String): Boolean = false
 }

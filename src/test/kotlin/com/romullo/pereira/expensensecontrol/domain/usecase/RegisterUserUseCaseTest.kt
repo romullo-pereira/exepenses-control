@@ -35,6 +35,8 @@ class InMemoryUserRepository : UserRepositoryPort {
 
     override fun findByEmail(email: String): User? = users.find { it.email == email }
 
+    override fun findById(id: String): User? = users.find { it.id == id }
+
     override fun existsByEmail(email: String): Boolean = users.any { it.email == email }
 }
 
