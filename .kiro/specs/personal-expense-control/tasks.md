@@ -76,14 +76,14 @@ Refatoração do projeto para arquitetura hexagonal (Ports & Adapters) com Kotli
 - [x] 6. Checkpoint — Garantir que todos os testes passem
   - Garantir que todos os testes passem; perguntar ao usuário se houver dúvidas.
 
-- [-] 7. Implementar casos de uso de despesas
+- [x] 7. Implementar casos de uso de despesas
   - [x] 7.1 Implementar `CreateExpenseUseCaseImpl`
     - Validar `amount > 0` e campos obrigatórios; lançar `InvalidInputException` se inválido
     - Persistir despesa com `source = MANUAL` via `ExpenseRepository.save`
     - Publicar `ExpenseCreatedEvent` via `EventPublisher.publishExpenseCreated` (capturar exceção Kafka com try/catch e logar com ERROR)
     - Verificar `amount > user.expenseLimit` e publicar `ExpenseHighAlertEvent` se aplicável
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 8.1, 8.2, 8.4_
-  - [ ]* 7.2 Escrever testes de propriedade para `CreateExpenseUseCase`
+  - [x] 7.2 Escrever testes de propriedade para `CreateExpenseUseCase`
     - **Property 7: Criação de despesa persiste com source=MANUAL**
     - **Validates: Requirements 3.1**
   - [ ]* 7.3 Escrever testes de propriedade para `CreateExpenseUseCase`
@@ -98,7 +98,7 @@ Refatoração do projeto para arquitetura hexagonal (Ports & Adapters) com Kotli
   - [ ]* 7.6 Escrever testes de propriedade para `CreateExpenseUseCase`
     - **Property 22: Falha no Kafka não interrompe o fluxo REST**
     - **Validates: Requirements 8.4**
-  - [ ] 7.7 Implementar `ListExpensesUseCaseImpl`
+  - [x] 7.7 Implementar `ListExpensesUseCaseImpl`
     - Buscar despesas por `userId` via `ExpenseRepository.findByUserId`
     - Ordenar resultado por data decrescente
     - _Requirements: 4.1, 4.2, 4.3, 9.2_
@@ -108,7 +108,7 @@ Refatoração do projeto para arquitetura hexagonal (Ports & Adapters) com Kotli
   - [ ]* 7.9 Escrever testes de propriedade para `ListExpensesUseCase`
     - **Property 12: Despesas listadas em ordem decrescente de data**
     - **Validates: Requirements 4.2**
-  - [ ] 7.10 Implementar `GetExpenseByIdUseCaseImpl`
+  - [x] 7.10 Implementar `GetExpenseByIdUseCaseImpl`
     - Buscar via `ExpenseRepository.findByIdAndUserId`; lançar `NotFoundException` se não encontrado, `ForbiddenException` se pertencer a outro usuário
     - _Requirements: 5.1, 5.2, 5.3, 9.2_
   - [ ]* 7.11 Escrever testes de propriedade para `GetExpenseByIdUseCase`
