@@ -111,7 +111,7 @@ Refatoração do projeto para arquitetura hexagonal (Ports & Adapters) com Kotli
   - [x] 7.10 Implementar `GetExpenseByIdUseCaseImpl`
     - Buscar via `ExpenseRepository.findByIdAndUserId`; lançar `NotFoundException` se não encontrado, `ForbiddenException` se pertencer a outro usuário
     - _Requirements: 5.1, 5.2, 5.3, 9.2_
-  - [ ]* 7.11 Escrever testes de propriedade para `GetExpenseByIdUseCase`
+  - [x] 7.11 Escrever testes de propriedade para `GetExpenseByIdUseCase`
     - **Property 13: Round trip de consulta de despesa por id**
     - **Validates: Requirements 5.1**
   - [ ]* 7.12 Escrever testes de propriedade para `GetExpenseByIdUseCase`
