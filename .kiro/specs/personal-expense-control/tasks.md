@@ -102,7 +102,7 @@ Refatoração do projeto para arquitetura hexagonal (Ports & Adapters) com Kotli
     - Buscar despesas por `userId` via `ExpenseRepository.findByUserId`
     - Ordenar resultado por data decrescente
     - _Requirements: 4.1, 4.2, 4.3, 9.2_
-  - [ ]* 7.8 Escrever testes de propriedade para `ListExpensesUseCase`
+  - [x] 7.8 Escrever testes de propriedade para `ListExpensesUseCase`
     - **Property 11: Isolamento de despesas por usuário na listagem**
     - **Validates: Requirements 4.1, 9.2**
   - [ ]* 7.9 Escrever testes de propriedade para `ListExpensesUseCase`
