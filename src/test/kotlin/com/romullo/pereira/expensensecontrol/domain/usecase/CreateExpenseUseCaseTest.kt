@@ -8,6 +8,8 @@ import com.romullo.pereira.expensensecontrol.domain.model.user.User
 import com.romullo.pereira.expensensecontrol.domain.port.outbound.EventPublisherPort
 import com.romullo.pereira.expensensecontrol.domain.port.outbound.ExpenseRepositoryPort
 import com.romullo.pereira.expensensecontrol.domain.port.outbound.UserRepositoryPort
+import com.romullo.pereira.expensensecontrol.domain.exception.InvalidInputException
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.property.Arb
@@ -17,6 +19,7 @@ import io.kotest.property.arbitrary.filter
 import io.kotest.property.arbitrary.long
 import io.kotest.property.arbitrary.string
 import io.kotest.property.checkAll
+import io.kotest.property.arbitrary.of
 import com.romullo.pereira.expensensecontrol.domain.model.event.ExpenseCreatedEvent
 import com.romullo.pereira.expensensecontrol.domain.model.event.ExpenseHighAlertEvent
 import io.mockk.clearMocks
@@ -225,6 +228,63 @@ class CreateExpenseUseCaseTest : StringSpec({
             useCase.create(request, userId)
 
             verify(exactly = 0) { eventPublisher.publishExpenseHighAlert(any()) }
+        }
+    }
+
+    // Feature: personal-expense-control, Property 10: Validação de entrada na criação de despesa
+    // Validates: Requirements 3.4
+    "para qualquer requisicao com amount <= 0 ou campos obrigatorios em branco, deve lancar InvalidInputException e nenhuma despesa deve ser persistida" {
+        val arbNonPositiveAmount: Arb<Double> = Arb.double(-10_000.0, 0.0).filter { it.isFinite() && it <= 0.0 }
+        val arbBlankString: Arb<String> = Arb.of("", "   ", "\t", "\n")
+        val arbValidAmount: Arb<Double> = Arb.double(0.01, 10_000.0).filter { it > 0.0 && it.isFinite() }
+        val arbValidString: Arb<String> = Arb.string(minSize = 1, maxSize = 50).filter { it.isNotBlank() }
+
+        // Case 1: amount <= 0 with otherwise valid fields
+        checkAll(100, arbNonPositiveAmount, arbValidString, arbInstant, arbValidString, arbUserId) {
+            amount, category, date, description, userId ->
+
+            clearMocks(expenseRepository, userRepository, eventPublisher)
+
+            shouldThrow<InvalidInputException> {
+                useCase.create(
+                    CreateExpenseRequest(amount = amount, category = category, date = date, description = description),
+                    userId
+                )
+            }
+
+            verify(exactly = 0) { expenseRepository.save(any()) }
+        }
+
+        // Case 2: blank category with otherwise valid fields
+        checkAll(100, arbValidAmount, arbBlankString, arbInstant, arbValidString, arbUserId) {
+            amount, category, date, description, userId ->
+
+            clearMocks(expenseRepository, userRepository, eventPublisher)
+
+            shouldThrow<InvalidInputException> {
+                useCase.create(
+                    CreateExpenseRequest(amount = amount, category = category, date = date, description = description),
+                    userId
+                )
+            }
+
+            verify(exactly = 0) { expenseRepository.save(any()) }
+        }
+
+        // Case 3: blank description with otherwise valid fields
+        checkAll(100, arbValidAmount, arbValidString, arbInstant, arbBlankString, arbUserId) {
+            amount, category, date, description, userId ->
+
+            clearMocks(expenseRepository, userRepository, eventPublisher)
+
+            shouldThrow<InvalidInputException> {
+                useCase.create(
+                    CreateExpenseRequest(amount = amount, category = category, date = date, description = description),
+                    userId
+                )
+            }
+
+            verify(exactly = 0) { expenseRepository.save(any()) }
         }
     }
 })
