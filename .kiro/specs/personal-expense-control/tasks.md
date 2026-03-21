@@ -95,7 +95,7 @@ Refatoração do projeto para arquitetura hexagonal (Ports & Adapters) com Kotli
   - [x] 7.5 Escrever testes de propriedade para `CreateExpenseUseCase`
     - **Property 10: Validação de entrada na criação de despesa**
     - **Validates: Requirements 3.4**
-  - [ ]* 7.6 Escrever testes de propriedade para `CreateExpenseUseCase`
+  - [x] 7.6 Escrever testes de propriedade para `CreateExpenseUseCase`
     - **Property 22: Falha no Kafka não interrompe o fluxo REST**
     - **Validates: Requirements 8.4**
   - [x] 7.7 Implementar `ListExpensesUseCaseImpl`

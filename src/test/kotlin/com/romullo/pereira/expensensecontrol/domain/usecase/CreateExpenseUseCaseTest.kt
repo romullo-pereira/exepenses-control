@@ -231,6 +231,50 @@ class CreateExpenseUseCaseTest : StringSpec({
         }
     }
 
+    // Feature: personal-expense-control, Property 22: Falha no Kafka não interrompe o fluxo REST
+    // Validates: Requirements 8.4
+    "para qualquer operacao de criacao de despesa, se o eventPublisher lancar excecao, o caso de uso deve retornar ExpenseResponse normalmente sem propagar a excecao" {
+        checkAll(100, arbAmount, arbNonBlankString, arbInstant, arbNonBlankString, arbUserId) {
+            amount, category, date, description, userId ->
+
+            clearMocks(expenseRepository, userRepository, eventPublisher)
+
+            val savedExpenseSlot = slot<Expense>()
+
+            every { expenseRepository.save(capture(savedExpenseSlot)) } answers {
+                savedExpenseSlot.captured
+            }
+
+            every { userRepository.findById(userId) } returns User(
+                id = userId,
+                email = "$userId@test.com",
+                passwordHash = "hash",
+                expenseLimit = null,
+            )
+
+            // Simulate Kafka publisher throwing any exception
+            every { eventPublisher.publishExpenseCreated(any()) } throws RuntimeException("Kafka unavailable")
+
+            val request = CreateExpenseRequest(
+                amount = amount,
+                category = category,
+                date = date,
+                description = description,
+            )
+
+            // Must NOT throw — the use case must absorb the Kafka failure
+            val response = useCase.create(request, userId)
+
+            // The primary operation result must still be returned correctly
+            response.amount shouldBe amount
+            response.category shouldBe category
+            response.date shouldBe date
+            response.description shouldBe description
+            response.userId shouldBe userId
+            response.source shouldBe ExpenseSource.MANUAL.name
+        }
+    }
+
     // Feature: personal-expense-control, Property 10: Validação de entrada na criação de despesa
     // Validates: Requirements 3.4
     "para qualquer requisicao com amount <= 0 ou campos obrigatorios em branco, deve lancar InvalidInputException e nenhuma despesa deve ser persistida" {
