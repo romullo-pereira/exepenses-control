@@ -20,6 +20,7 @@ import io.mockk.mockk
 import java.time.Instant
 
 // Feature: personal-expense-control, Property 11: Isolamento de despesas por usuário na listagem
+// Feature: personal-expense-control, Property 12: Despesas listadas em ordem decrescente de data
 class ListExpensesUseCaseTest : StringSpec({
 
     val expenseRepository = mockk<ExpenseRepositoryPort>()
@@ -72,6 +73,21 @@ class ListExpensesUseCaseTest : StringSpec({
 
             // The count must match the number of expenses for that user
             result.size shouldBe userExpenses.size
+        }
+    }
+
+    // Feature: personal-expense-control, Property 12: Despesas listadas em ordem decrescente de data
+    // Validates: Requirements 4.2
+    "despesas listadas devem estar em ordem decrescente de data" {
+        checkAll(100, arbUserId, Arb.list(arbExpenseForUser, range = 2..20)) { userId, expensePairs ->
+
+            val userExpenses = expensePairs.map { (_, expense) -> expense.copy(userId = userId) }
+            every { expenseRepository.findByUserId(userId) } returns userExpenses
+
+            val result = useCase.listByUser(userId)
+
+            // For every consecutive pair, the earlier element must have date >= the later one
+            result.zipWithNext().all { (a, b) -> !a.date.isBefore(b.date) } shouldBe true
         }
     }
 })

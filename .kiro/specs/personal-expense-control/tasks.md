@@ -105,7 +105,7 @@ Refatoração do projeto para arquitetura hexagonal (Ports & Adapters) com Kotli
   - [x] 7.8 Escrever testes de propriedade para `ListExpensesUseCase`
     - **Property 11: Isolamento de despesas por usuário na listagem**
     - **Validates: Requirements 4.1, 9.2**
-  - [ ]* 7.9 Escrever testes de propriedade para `ListExpensesUseCase`
+  - [x] 7.9 Escrever testes de propriedade para `ListExpensesUseCase`
     - **Property 12: Despesas listadas em ordem decrescente de data**
     - **Validates: Requirements 4.2**
   - [x] 7.10 Implementar `GetExpenseByIdUseCaseImpl`
