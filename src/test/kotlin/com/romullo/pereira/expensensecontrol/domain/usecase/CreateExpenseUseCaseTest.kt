@@ -1,0 +1,334 @@
+package com.romullo.pereira.expensensecontrol.domain.usecase
+
+import com.romullo.pereira.expensensecontrol.application.usecase.CreateExpenseUseCaseImpl
+import com.romullo.pereira.expensensecontrol.domain.model.enum.ExpenseSource
+import com.romullo.pereira.expensensecontrol.domain.model.expense.CreateExpenseRequest
+import com.romullo.pereira.expensensecontrol.domain.model.expense.Expense
+import com.romullo.pereira.expensensecontrol.domain.model.user.User
+import com.romullo.pereira.expensensecontrol.domain.port.outbound.EventPublisherPort
+import com.romullo.pereira.expensensecontrol.domain.port.outbound.ExpenseRepositoryPort
+import com.romullo.pereira.expensensecontrol.domain.port.outbound.UserRepositoryPort
+import com.romullo.pereira.expensensecontrol.domain.exception.InvalidInputException
+import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.shouldBe
+import io.kotest.property.Arb
+import io.kotest.property.arbitrary.arbitrary
+import io.kotest.property.arbitrary.double
+import io.kotest.property.arbitrary.filter
+import io.kotest.property.arbitrary.long
+import io.kotest.property.arbitrary.string
+import io.kotest.property.checkAll
+import io.kotest.property.arbitrary.of
+import com.romullo.pereira.expensensecontrol.domain.model.event.ExpenseCreatedEvent
+import com.romullo.pereira.expensensecontrol.domain.model.event.ExpenseHighAlertEvent
+import io.mockk.clearMocks
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.slot
+import io.mockk.verify
+import java.time.Instant
+
+// Feature: personal-expense-control, Property 7: Criação de despesa persiste com source=MANUAL
+class CreateExpenseUseCaseTest : StringSpec({
+
+    val expenseRepository = mockk<ExpenseRepositoryPort>()
+    val userRepository = mockk<UserRepositoryPort>()
+    val eventPublisher = mockk<EventPublisherPort>(relaxed = true)
+
+    val useCase = CreateExpenseUseCaseImpl(
+        expenseRepository = expenseRepository,
+        userRepository = userRepository,
+        eventPublisher = eventPublisher,
+    )
+
+    // Generators
+    val arbAmount: Arb<Double> = Arb.double(0.01, 10_000.0).filter { it > 0.0 && it.isFinite() }
+
+    val arbNonBlankString: Arb<String> = Arb.string(minSize = 1, maxSize = 50)
+        .filter { it.isNotBlank() }
+
+    val arbInstant: Arb<Instant> = arbitrary {
+        val epochSecond = Arb.long(0L, 9_999_999_999L).bind()
+        Instant.ofEpochSecond(epochSecond)
+    }
+
+    val arbUserId: Arb<String> = Arb.string(minSize = 1, maxSize = 24)
+        .filter { it.isNotBlank() && it.all { c -> c.isLetterOrDigit() } }
+
+    // Feature: personal-expense-control, Property 7: Criação de despesa persiste com source=MANUAL
+    // Validates: Requirements 3.1
+    "para qualquer requisicao valida, a despesa persistida deve ter source=MANUAL e conter exatamente os dados da requisicao" {
+        checkAll(100, arbAmount, arbNonBlankString, arbInstant, arbNonBlankString, arbUserId) {
+            amount, category, date, description, userId ->
+
+            val savedExpenseSlot = slot<Expense>()
+
+            every { expenseRepository.save(capture(savedExpenseSlot)) } answers {
+                savedExpenseSlot.captured
+            }
+
+            every { userRepository.findById(userId) } returns User(
+                id = userId,
+                email = "$userId@test.com",
+                passwordHash = "hash",
+                expenseLimit = null,
+            )
+
+            val request = CreateExpenseRequest(
+                amount = amount,
+                category = category,
+                date = date,
+                description = description,
+            )
+
+            val response = useCase.create(request, userId)
+
+            // source must be MANUAL
+            response.source shouldBe ExpenseSource.MANUAL.name
+
+            // persisted expense must have source = MANUAL
+            savedExpenseSlot.captured.source shouldBe ExpenseSource.MANUAL
+
+            // fields must match the request exactly
+            savedExpenseSlot.captured.amount shouldBe amount
+            savedExpenseSlot.captured.category shouldBe category
+            savedExpenseSlot.captured.date shouldBe date
+            savedExpenseSlot.captured.description shouldBe description
+            savedExpenseSlot.captured.userId shouldBe userId
+
+            // response fields must also match
+            response.amount shouldBe amount
+            response.category shouldBe category
+            response.date shouldBe date
+            response.description shouldBe description
+            response.userId shouldBe userId
+        }
+    }
+
+    // Feature: personal-expense-control, Property 8: Evento expense.created publicado com dados corretos
+    // Validates: Requirements 3.2, 8.1
+    "para qualquer despesa criada com sucesso, o evento expense.created publicado deve conter expenseId, userId, amount e category iguais aos da despesa persistida" {
+        checkAll(100, arbAmount, arbNonBlankString, arbInstant, arbNonBlankString, arbUserId) {
+            amount, category, date, description, userId ->
+
+            val savedExpenseSlot = slot<Expense>()
+            val eventSlot = slot<ExpenseCreatedEvent>()
+
+            every { expenseRepository.save(capture(savedExpenseSlot)) } answers {
+                savedExpenseSlot.captured
+            }
+
+            every { userRepository.findById(userId) } returns User(
+                id = userId,
+                email = "$userId@test.com",
+                passwordHash = "hash",
+                expenseLimit = null,
+            )
+
+            every { eventPublisher.publishExpenseCreated(capture(eventSlot)) } returns Unit
+
+            val request = CreateExpenseRequest(
+                amount = amount,
+                category = category,
+                date = date,
+                description = description,
+            )
+
+            useCase.create(request, userId)
+
+            val persistedExpense = savedExpenseSlot.captured
+            val publishedEvent = eventSlot.captured
+
+            // event expenseId must match the persisted expense id
+            publishedEvent.expenseId shouldBe persistedExpense.id
+
+            // event userId must match the persisted expense userId
+            publishedEvent.userId shouldBe persistedExpense.userId
+
+            // event amount must match the persisted expense amount
+            publishedEvent.amount shouldBe persistedExpense.amount
+
+            // event category must match the persisted expense category
+            publishedEvent.category shouldBe persistedExpense.category
+        }
+    }
+
+    // Feature: personal-expense-control, Property 9: Alerta de gasto alto publicado somente quando valor supera limite
+    // Validates: Requirements 3.3, 8.2
+    "alerta alert.expense.high deve ser publicado se e somente se amount supera expenseLimit" {
+        val arbPositiveDouble = Arb.double(0.01, 10_000.0).filter { it > 0.0 && it.isFinite() }
+
+        // Branch 1: amount > expenseLimit → alert must be published exactly once
+        checkAll(100, arbPositiveDouble, arbPositiveDouble, arbNonBlankString, arbInstant, arbNonBlankString, arbUserId) {
+            limit, extraAmount, category, date, description, userId ->
+
+            clearMocks(expenseRepository, userRepository, eventPublisher)
+
+            val amount = limit + extraAmount  // guarantees amount > limit
+
+            val savedExpenseSlot = slot<Expense>()
+
+            every { expenseRepository.save(capture(savedExpenseSlot)) } answers {
+                savedExpenseSlot.captured
+            }
+
+            every { userRepository.findById(userId) } returns User(
+                id = userId,
+                email = "$userId@test.com",
+                passwordHash = "hash",
+                expenseLimit = limit,
+            )
+
+            every { eventPublisher.publishExpenseCreated(any()) } returns Unit
+            every { eventPublisher.publishExpenseHighAlert(any()) } returns Unit
+
+            val request = CreateExpenseRequest(
+                amount = amount,
+                category = category,
+                date = date,
+                description = description,
+            )
+
+            useCase.create(request, userId)
+
+            verify(exactly = 1) { eventPublisher.publishExpenseHighAlert(any()) }
+        }
+
+        // Branch 2: amount <= expenseLimit → alert must NOT be published
+        checkAll(100, arbPositiveDouble, arbPositiveDouble, arbNonBlankString, arbInstant, arbNonBlankString, arbUserId) {
+            amount, extraLimit, category, date, description, userId ->
+
+            clearMocks(expenseRepository, userRepository, eventPublisher)
+
+            val limit = amount + extraLimit  // guarantees limit >= amount (amount <= limit)
+
+            val savedExpenseSlot = slot<Expense>()
+
+            every { expenseRepository.save(capture(savedExpenseSlot)) } answers {
+                savedExpenseSlot.captured
+            }
+
+            every { userRepository.findById(userId) } returns User(
+                id = userId,
+                email = "$userId@test.com",
+                passwordHash = "hash",
+                expenseLimit = limit,
+            )
+
+            every { eventPublisher.publishExpenseCreated(any()) } returns Unit
+
+            val request = CreateExpenseRequest(
+                amount = amount,
+                category = category,
+                date = date,
+                description = description,
+            )
+
+            useCase.create(request, userId)
+
+            verify(exactly = 0) { eventPublisher.publishExpenseHighAlert(any()) }
+        }
+    }
+
+    // Feature: personal-expense-control, Property 22: Falha no Kafka não interrompe o fluxo REST
+    // Validates: Requirements 8.4
+    "para qualquer operacao de criacao de despesa, se o eventPublisher lancar excecao, o caso de uso deve retornar ExpenseResponse normalmente sem propagar a excecao" {
+        checkAll(100, arbAmount, arbNonBlankString, arbInstant, arbNonBlankString, arbUserId) {
+            amount, category, date, description, userId ->
+
+            clearMocks(expenseRepository, userRepository, eventPublisher)
+
+            val savedExpenseSlot = slot<Expense>()
+
+            every { expenseRepository.save(capture(savedExpenseSlot)) } answers {
+                savedExpenseSlot.captured
+            }
+
+            every { userRepository.findById(userId) } returns User(
+                id = userId,
+                email = "$userId@test.com",
+                passwordHash = "hash",
+                expenseLimit = null,
+            )
+
+            // Simulate Kafka publisher throwing any exception
+            every { eventPublisher.publishExpenseCreated(any()) } throws RuntimeException("Kafka unavailable")
+
+            val request = CreateExpenseRequest(
+                amount = amount,
+                category = category,
+                date = date,
+                description = description,
+            )
+
+            // Must NOT throw — the use case must absorb the Kafka failure
+            val response = useCase.create(request, userId)
+
+            // The primary operation result must still be returned correctly
+            response.amount shouldBe amount
+            response.category shouldBe category
+            response.date shouldBe date
+            response.description shouldBe description
+            response.userId shouldBe userId
+            response.source shouldBe ExpenseSource.MANUAL.name
+        }
+    }
+
+    // Feature: personal-expense-control, Property 10: Validação de entrada na criação de despesa
+    // Validates: Requirements 3.4
+    "para qualquer requisicao com amount <= 0 ou campos obrigatorios em branco, deve lancar InvalidInputException e nenhuma despesa deve ser persistida" {
+        val arbNonPositiveAmount: Arb<Double> = Arb.double(-10_000.0, 0.0).filter { it.isFinite() && it <= 0.0 }
+        val arbBlankString: Arb<String> = Arb.of("", "   ", "\t", "\n")
+        val arbValidAmount: Arb<Double> = Arb.double(0.01, 10_000.0).filter { it > 0.0 && it.isFinite() }
+        val arbValidString: Arb<String> = Arb.string(minSize = 1, maxSize = 50).filter { it.isNotBlank() }
+
+        // Case 1: amount <= 0 with otherwise valid fields
+        checkAll(100, arbNonPositiveAmount, arbValidString, arbInstant, arbValidString, arbUserId) {
+            amount, category, date, description, userId ->
+
+            clearMocks(expenseRepository, userRepository, eventPublisher)
+
+            shouldThrow<InvalidInputException> {
+                useCase.create(
+                    CreateExpenseRequest(amount = amount, category = category, date = date, description = description),
+                    userId
+                )
+            }
+
+            verify(exactly = 0) { expenseRepository.save(any()) }
+        }
+
+        // Case 2: blank category with otherwise valid fields
+        checkAll(100, arbValidAmount, arbBlankString, arbInstant, arbValidString, arbUserId) {
+            amount, category, date, description, userId ->
+
+            clearMocks(expenseRepository, userRepository, eventPublisher)
+
+            shouldThrow<InvalidInputException> {
+                useCase.create(
+                    CreateExpenseRequest(amount = amount, category = category, date = date, description = description),
+                    userId
+                )
+            }
+
+            verify(exactly = 0) { expenseRepository.save(any()) }
+        }
+
+        // Case 3: blank description with otherwise valid fields
+        checkAll(100, arbValidAmount, arbValidString, arbInstant, arbBlankString, arbUserId) {
+            amount, category, date, description, userId ->
+
+            clearMocks(expenseRepository, userRepository, eventPublisher)
+
+            shouldThrow<InvalidInputException> {
+                useCase.create(
+                    CreateExpenseRequest(amount = amount, category = category, date = date, description = description),
+                    userId
+                )
+            }
+
+            verify(exactly = 0) { expenseRepository.save(any()) }
+        }
+    }
+})

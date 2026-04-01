@@ -1,16 +1,12 @@
 package com.romullo.pereira.expensensecontrol.domain.model.login
 
-import com.romullo.pereira.expensensecontrol.domain.commons.DefaultMessages.INVALID_EMAIL
-import com.romullo.pereira.expensensecontrol.domain.commons.isValidEmail
+import jakarta.validation.constraints.Email
+import jakarta.validation.constraints.NotBlank
 
 data class LoginRequest(
+    @field:Email
+    @field:NotBlank
     val email: String,
+    @field:NotBlank
     val password: String,
-) {
-    fun validate(): LoginRequest {
-        if (email.isNotBlank() && !email.isValidEmail()) {
-            throw IllegalArgumentException(INVALID_EMAIL)
-        }
-        return this
-    }
-}
+)
